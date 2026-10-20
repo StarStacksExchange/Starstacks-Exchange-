@@ -1,7 +1,6 @@
 import { Address } from "viem";
-
-export const AFFILIATE_FEE = 100; // 1% affiliate fee. Denoted in Bps.
-export const FEE_RECIPIENT = "0x75A94931B81d81C7a62b76DC0FcFAC77FbE1e917"; // The ETH address that should receive affiliate fees
+export const AFFILIATE_FEE = 100; // 1% fee
+export const FEE_RECIPIENT = "0x5473C4b2fd77A5fa8A0C23b90C0d713AC2a8C724";
 
 export const MAX_ALLOWANCE =
   115792089237316195423570985008687907853269984665640564039457584007913129639935n;
