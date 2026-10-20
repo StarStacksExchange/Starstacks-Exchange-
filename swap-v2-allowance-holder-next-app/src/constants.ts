@@ -17,6 +17,15 @@ interface Token {
 export const MAINNET_TOKENS: Token[] = [
     {
     chainId: 1,
+    name: "Ethereum",
+    symbol: "ETH",
+    decimals: 18,
+    address: "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+    logoURI:
+      "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/info/logo.png",
+  },
+    {
+    chainId: 1,
     name: "Tether USD",
     symbol: "USDT",
     decimals: 6,
@@ -63,6 +72,15 @@ export const MAINNET_TOKENS: Token[] = [
 ];
 
 export const MAINNET_TOKENS_BY_SYMBOL: Record<string, Token> = {
+    eth: {
+    chainId: 1,
+    name: "Ethereum",
+    symbol: "ETH",
+    decimals: 18,
+    address: "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+    logoURI:
+      "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/info/logo.png",
+  },
     usdt: {
     chainId: 1,
     name: "Tether USD",
@@ -111,6 +129,15 @@ export const MAINNET_TOKENS_BY_SYMBOL: Record<string, Token> = {
 };
 
 export const MAINNET_TOKENS_BY_ADDRESS: Record<string, Token> = {
+    "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee": {
+    chainId: 1,
+    name: "Ethereum",
+    symbol: "ETH",
+    decimals: 18,
+    address: "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+    logoURI:
+      "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/info/logo.png",
+  },
     "0xdac17f958d2ee523a2206206994597c13d831ec7": {
     chainId: 1,
     name: "Tether USD",
