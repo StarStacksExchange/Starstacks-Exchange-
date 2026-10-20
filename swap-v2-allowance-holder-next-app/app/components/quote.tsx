@@ -11,6 +11,7 @@ import { Address, concat, numberToHex, size, type Hex } from "viem";
 import type { PriceResponse, QuoteResponse } from "../../src/utils/types";
 import {
   MAINNET_TOKENS_BY_ADDRESS,
+  BASE_TOKENS_BY_ADDRESS,
   AFFILIATE_FEE,
   FEE_RECIPIENT,
 } from "../../src/constants";
@@ -33,17 +34,19 @@ export default function QuoteView({
   console.log("price", price);
 
   const sellTokenInfo = (chainId: number) => {
-    if (chainId === 1) {
-      return MAINNET_TOKENS_BY_ADDRESS[price.sellToken.toLowerCase()];
-    }
-    return MAINNET_TOKENS_BY_ADDRESS[price.sellToken.toLowerCase()];
+  if (chainId === 8453) {
+    return BASE_TOKENS_BY_ADDRESS[price.sellToken.toLowerCase()];
+  }
+  return MAINNET_TOKENS_BY_ADDRESS[price.sellToken.toLowerCase()];
+};
   };
 
   const buyTokenInfo = (chainId: number) => {
-    if (chainId === 1) {
-      return MAINNET_TOKENS_BY_ADDRESS[price.buyToken.toLowerCase()];
-    }
-    return MAINNET_TOKENS_BY_ADDRESS[price.buyToken.toLowerCase()];
+  if (chainId === 8453) {
+    return BASE_TOKENS_BY_ADDRESS[price.buyToken.toLowerCase()];
+  }
+  return MAINNET_TOKENS_BY_ADDRESS[price.buyToken.toLowerCase()];
+};
   };
 
   const { signTypedDataAsync } = useSignTypedData();
@@ -104,81 +107,92 @@ export default function QuoteView({
   return (
     <div className="p-3 mx-auto max-w-screen-sm ">
       <form>
-        <div className="bg-slate-200 dark:bg-slate-800 p-4 rounded-sm mb-3">
-          <div className="text-xl mb-2 text-white">You pay</div>
-          <div className="flex items-center text-lg sm:text-3xl text-white">
-            <Image
-              alt={sellTokenInfo(chainId).symbol}
-              className="h-9 w-9 mr-2 rounded-md"
-              src={sellTokenInfo(chainId || 1)?.logoURI}
-              width={9}
-              height={9}
-            />
-            <span>
-              {formatUnits(quote.sellAmount, sellTokenInfo(chainId).decimals)}
-            </span>
-            <div className="ml-2">{sellTokenInfo(chainId).symbol}</div>
-          </div>
+      <div className="bg-slate-200 dark:bg-slate-800 p-4 rounded-sm mb-3">
+  <div className="text-xl mb-2 text-white">You pay</div>
+
+  <div className="flex items-center text-lg sm:text-3xl text-white">
+    {sellTokenInfo(chainId) ? (
+      <>
+        <Image
+          alt={sellTokenInfo(chainId).symbol}
+          className="h-9 w-9 mr-2 rounded-md"
+          src={sellTokenInfo(chainId).logoURI}
+          width={36}
+          height={36}
+        />
+
+        <span>
+          {formatUnits(
+            quote.sellAmount,
+            sellTokenInfo(chainId).decimals
+          )}
+        </span>
+
+        <div className="ml-2">
+          {sellTokenInfo(chainId).symbol}
+        </div>
+      </>
+    ) : (
+      <span>Token unavailable</span>
+    )}
+  </div>
+</div>
         </div>
 
         <div className="bg-slate-200 dark:bg-slate-800 p-4 rounded-sm mb-3">
           <div className="text-xl mb-2 text-white">You receive</div>
           <div className="flex items-center text-lg sm:text-3xl text-white">
             <img
-              alt={
-                MAINNET_TOKENS_BY_ADDRESS[price.buyToken.toLowerCase()].symbol
-              }
-              className="h-9 w-9 mr-2 rounded-md"
-              src={
-                MAINNET_TOKENS_BY_ADDRESS[price.buyToken.toLowerCase()].logoURI
-              }
-            />
+  alt={buyTokenInfo(chainId)?.symbol || "Token"}
+  className="h-9 w-9 mr-2 rounded-md"
+  src={buyTokenInfo(chainId)?.logoURI || ""}
+/>
             <span>
-              {formatUnits(quote.buyAmount, buyTokenInfo(chainId).decimals)}
+              {buyTokenInfo(chainId)
+  ? formatUnits(quote.buyAmount, buyTokenInfo(chainId).decimals)
+  : "Token unavailable"}
             </span>
             <div className="ml-2">{buyTokenInfo(chainId).symbol}</div>
           </div>
         </div>
 
         <div className="bg-slate-200 dark:bg-slate-800 p-4 rounded-sm mb-3">
-          <div className="text-slate-400">
-            {quote &&
-            quote.fees &&
-            quote.fees.integratorFee &&
-            quote.fees.integratorFee.amount
-              ? "Affiliate Fee: " +
-                Number(
-                  formatUnits(
-                    BigInt(quote.fees.integratorFee.amount),
-                    buyTokenInfo(chainId).decimals
-                  )
-                ) +
-                " " +
-                buyTokenInfo(chainId).symbol
+         <div className="text-slate-400">
+  {quote?.fees?.integratorFee?.amount && buyTokenInfo(chainId)
+    ? "Affiliate Fee: " +
+      Number(
+        formatUnits(
+          BigInt(quote.fees.integratorFee.amount),
+          buyTokenInfo(chainId).decimals
+        )
+      ) +
+      " " +
+      buyTokenInfo(chainId).symbol
+    : null}
+</div>
               : null}
           </div>
-          {/* Tax Information Display */}
-          <div className="text-slate-400">
-            {quote.tokenMetadata.buyToken.buyTaxBps &&
-              quote.tokenMetadata.buyToken.buyTaxBps !== "0" && (
-                <p>
-                  {buyTokenInfo(chainId).symbol +
-                    ` Buy Tax: ${formatTax(
-                      quote.tokenMetadata.buyToken.buyTaxBps
-                    )}%`}
-                </p>
-              )}
-            {quote.tokenMetadata.sellToken.sellTaxBps &&
-              quote.tokenMetadata.sellToken.sellTaxBps !== "0" && (
-                <p>
-                  {sellTokenInfo(chainId).symbol +
-                    ` Sell Tax: ${formatTax(
-                      quote.tokenMetadata.sellToken.sellTaxBps
-                    )}%`}
-                </p>
-              )}
-          </div>
-        </div>
+      {/* Tax Information Display */}
+<div className="text-slate-400">
+  {quote?.tokenMetadata?.buyToken?.buyTaxBps &&
+    quote.tokenMetadata.buyToken.buyTaxBps !== "0" &&
+    buyTokenInfo(chainId) && (
+      <p>
+        {buyTokenInfo(chainId).symbol} Buy Tax:{" "}
+        {formatTax(quote.tokenMetadata.buyToken.buyTaxBps)}%
+      </p>
+    )}
+
+  {quote?.tokenMetadata?.sellToken?.sellTaxBps &&
+    quote.tokenMetadata.sellToken.sellTaxBps !== "0" &&
+    sellTokenInfo(chainId) && (
+      <p>
+        {sellTokenInfo(chainId).symbol} Sell Tax:{" "}
+        {formatTax(quote.tokenMetadata.sellToken.sellTaxBps)}%
+      </p>
+    )}
+</div>
+    </div>
       </form>
 
       <button
