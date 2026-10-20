@@ -252,7 +252,12 @@ export default function PriceView({
           to build your own
         </p>
 
-        <div className="bg-slate-200 dark:bg-slate-800 p-4 rounded-md mb-3">
+        <div className="mb-4 rounded-lg border border-blue-500 bg-blue-950 p-4 text-center text-white">
+  <p className="font-bold">Starstacks Exchange Service Fee: 8%</p>
+  <p className="text-sm">
+    An 8% service fee applies to eligible swaps and is reflected in your quote.
+  </p>
+</div>
           <label htmlFor="sell" className="text-gray-300 mb-2 mr-2">
             Sell
           </label>
