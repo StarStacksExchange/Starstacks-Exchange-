@@ -47,7 +47,6 @@ export default function QuoteView({
   }
   return MAINNET_TOKENS_BY_ADDRESS[price.buyToken.toLowerCase()];
 };
-  };
 
   const { signTypedDataAsync } = useSignTypedData();
   const { data: walletClient } = useWalletClient();
