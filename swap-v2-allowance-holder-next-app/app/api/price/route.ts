@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
       `https://api.0x.org/swap/allowance-holder/price?${searchParams}`,
       {
         headers: {
-          ""0x-api-key": process.env.ZEROX_API_KEY as string,,
+          ""0x-api-key": process.env.ZEROX_API_KEY as string,
           "0x-version": "v2",
         },
       }
