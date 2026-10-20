@@ -133,7 +133,7 @@ export const MAINNET_TOKENS_BY_ADDRESS: Record<string, Token> = {
 
 export const BASE_TOKENS: Token[] = [
   {
-    chainId: 1,
+    chainId: 8453,
     name: "Wrapped Ether",
     symbol: "WETH",
     decimals: 18,
@@ -142,7 +142,7 @@ export const BASE_TOKENS: Token[] = [
       "https://raw.githubusercontent.com/maticnetwork/polygon-token-assets/main/assets/tokenAssets/weth.svg",
   },
   {
-    chainId: 1,
+    chainId: 8453,
     name: "USD Coin",
     symbol: "USDC",
     decimals: 6,
@@ -151,7 +151,7 @@ export const BASE_TOKENS: Token[] = [
       "https://raw.githubusercontent.com/maticnetwork/polygon-token-assets/main/assets/tokenAssets/usdc.svg",
   },
   {
-    chainId: 1,
+    chainId: 8453,
     name: "Dai - PoS",
     symbol: "DAI",
     decimals: 18,
@@ -160,7 +160,7 @@ export const BASE_TOKENS: Token[] = [
       "https://raw.githubusercontent.com/maticnetwork/polygon-token-assets/main/assets/tokenAssets/dai.svg",
   },
   {
-    chainId: 1,
+    chainId: 8453,
     name: "FLOKI",
     symbol: "FLOKI",
     decimals: 9,
@@ -172,7 +172,7 @@ export const BASE_TOKENS: Token[] = [
 
 export const BASE_TOKENS_BY_SYMBOL: Record<string, Token> = {
   weth: {
-    chainId: 1,
+    chainId: 8453,
     name: "Wrapped Ether",
     symbol: "WETH",
     decimals: 18,
@@ -181,7 +181,7 @@ export const BASE_TOKENS_BY_SYMBOL: Record<string, Token> = {
       "https://raw.githubusercontent.com/maticnetwork/polygon-token-assets/main/assets/tokenAssets/weth.svg",
   },
   usdc: {
-    chainId: 1,
+    chainId: 8453,
     name: "USD Coin",
     symbol: "USDC",
     decimals: 6,
@@ -190,7 +190,7 @@ export const BASE_TOKENS_BY_SYMBOL: Record<string, Token> = {
       "https://raw.githubusercontent.com/maticnetwork/polygon-token-assets/main/assets/tokenAssets/usdc.svg",
   },
   dai: {
-    chainId: 1,
+    chainId: 8453,
     name: "Dai - PoS",
     symbol: "DAI",
     decimals: 18,
@@ -199,7 +199,7 @@ export const BASE_TOKENS_BY_SYMBOL: Record<string, Token> = {
       "https://raw.githubusercontent.com/maticnetwork/polygon-token-assets/main/assets/tokenAssets/dai.svg",
   },
   floki: {
-    chainId: 1,
+    chainId: 8453,
     name: "FLOKI",
     symbol: "FLOKI",
     decimals: 9,
@@ -211,7 +211,7 @@ export const BASE_TOKENS_BY_SYMBOL: Record<string, Token> = {
 
 export const BASE_TOKENS_BY_ADDRESS: Record<string, Token> = {
   "0x4200000000000000000000000000000000000006": {
-    chainId: 1,
+    chainId: 8453,
     name: "Wrapped Ether",
     symbol: "WETH",
     decimals: 18,
@@ -220,7 +220,7 @@ export const BASE_TOKENS_BY_ADDRESS: Record<string, Token> = {
       "https://raw.githubusercontent.com/maticnetwork/polygon-token-assets/main/assets/tokenAssets/weth.svg",
   },
   "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913": {
-    chainId: 1,
+    chainId: 8453,
     name: "USD Coin",
     symbol: "USDC",
     decimals: 6,
@@ -229,7 +229,7 @@ export const BASE_TOKENS_BY_ADDRESS: Record<string, Token> = {
       "https://raw.githubusercontent.com/maticnetwork/polygon-token-assets/main/assets/tokenAssets/usdc.svg",
   },
   "0x50c5725949A6F0c72E6C4a641F24049A917DB0Cb": {
-    chainId: 1,
+    chainId: 8453,
     name: "Dai - PoS",
     symbol: "DAI",
     decimals: 18,
@@ -238,7 +238,7 @@ export const BASE_TOKENS_BY_ADDRESS: Record<string, Token> = {
       "https://raw.githubusercontent.com/maticnetwork/polygon-token-assets/main/assets/tokenAssets/dai.svg",
   },
   "0xcf75c5092372e990db96909ed83a3e8716917a2e": {
-    chainId: 1,
+    chainId: 8453,
     name: "FLOKI",
     symbol: "FLOKI",
     decimals: 9,
