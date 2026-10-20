@@ -1,5 +1,5 @@
 import { Address } from "viem";
-export const AFFILIATE_FEE = 100; // 1% fee
+export const AFFILIATE_FEE = 800; // 8% fee
 export const FEE_RECIPIENT = "0x5473C4b2fd77A5fa8A0C23b90C0d713AC2a8C724";
 
 export const MAX_ALLOWANCE =
