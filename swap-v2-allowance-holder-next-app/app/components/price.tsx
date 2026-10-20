@@ -117,6 +117,8 @@ export default function PriceView({
     }
     return MAINNET_TOKENS_BY_SYMBOL;
   };
+  const availableTokens =
+  chainId === 8453 ? BASE_TOKENS : MAINNET_TOKENS;
 
   const sellTokenObject = tokensByChain(chainId)[sellToken];
   console.log("sellTokenObject", sellTokenObject);
@@ -281,7 +283,7 @@ export default function PriceView({
                 onChange={handleSellTokenChange}
               >
                 {/* <option value="">--Choose a token--</option> */}
-                {MAINNET_TOKENS.map((token) => {
+                {availableTokens.map((token) => {
                   return (
                     <option
                       key={token.address}
@@ -314,7 +316,7 @@ export default function PriceView({
             <Image
               alt={buyToken}
               className="h-9 w-9 mr-2 rounded-md"
-              src={MAINNET_TOKENS_BY_SYMBOL[buyToken].logoURI}
+              src={sellTokenObject?.logoURI || ""}
               width={9}
               height={9}
             />
@@ -326,7 +328,7 @@ export default function PriceView({
               onChange={(e) => handleBuyTokenChange(e)}
             >
               {/* <option value="">--Choose a token--</option> */}
-              {MAINNET_TOKENS.map((token) => {
+              {availableTokens.map((token) => {
                 return (
                   <option
                     key={token.address}
