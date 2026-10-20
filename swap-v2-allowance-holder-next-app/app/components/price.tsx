@@ -258,6 +258,7 @@ export default function PriceView({
     An 8% service fee applies to eligible swaps and is reflected in your quote.
   </p>
 </div>
+        <div className="bg-slate-200 dark:bg-slate-800 p-4 rounded-md mb-3">
           <label htmlFor="sell" className="text-gray-300 mb-2 mr-2">
             Sell
           </label>
