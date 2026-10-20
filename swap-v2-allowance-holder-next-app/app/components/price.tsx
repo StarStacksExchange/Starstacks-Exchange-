@@ -483,11 +483,11 @@ export default function PriceView({
                 </div>
               );
             }}
-                    </ConnectButton.Custom>
+                              </ConnectButton.Custom>
         )}
       </div>
     </div>
-    );
+  );
 
   function ApproveOrReviewButton({
     taker,
