@@ -487,8 +487,7 @@ export default function PriceView({
         )}
       </div>
     </div>
-    </div>
-  );
+    );
 
   function ApproveOrReviewButton({
     taker,
