@@ -15,6 +15,15 @@ interface Token {
 }
 
 export const MAINNET_TOKENS: Token[] = [
+    {
+    chainId: 1,
+    name: "Tether USD",
+    symbol: "USDT",
+    decimals: 6,
+    address: "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+    logoURI:
+      "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xdAC17F958D2ee523a2206206994597C13D831ec7/logo.png",
+  },
   {
     chainId: 1,
     name: "Wrapped Ether",
@@ -54,6 +63,15 @@ export const MAINNET_TOKENS: Token[] = [
 ];
 
 export const MAINNET_TOKENS_BY_SYMBOL: Record<string, Token> = {
+    usdt: {
+    chainId: 1,
+    name: "Tether USD",
+    symbol: "USDT",
+    decimals: 6,
+    address: "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+    logoURI:
+      "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xdAC17F958D2ee523a2206206994597C13D831ec7/logo.png",
+  },
   weth: {
     chainId: 1,
     name: "Wrapped Ether",
@@ -93,6 +111,15 @@ export const MAINNET_TOKENS_BY_SYMBOL: Record<string, Token> = {
 };
 
 export const MAINNET_TOKENS_BY_ADDRESS: Record<string, Token> = {
+    "0xdac17f958d2ee523a2206206994597c13d831ec7": {
+    chainId: 1,
+    name: "Tether USD",
+    symbol: "USDT",
+    decimals: 6,
+    address: "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+    logoURI:
+      "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xdAC17F958D2ee523a2206206994597C13D831ec7/logo.png",
+  },
   "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2": {
     chainId: 1,
     name: "Wrapped Ether",
