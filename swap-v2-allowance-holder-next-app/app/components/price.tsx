@@ -226,15 +226,16 @@ export default function PriceView({
           justifyContent: "space-between",
         }}
       >
-        <a href="https://0x.org/" target="_blank" rel="noopener noreferrer">
-          <Image src={ZeroExLogo} alt="Icon" width={50} height={50} />
-        </a>
+        <div className="text-xl font-extrabold text-blue-600">
+  STARSTACKS
+</div>
+        
         <ConnectButton />
       </header>
 
       <div className="container mx-auto p-10">
         <header className="text-center py-4">
-          <h1 className="text-3xl font-bold">0x Swap Demo</h1>
+          <h1 className="text-3xl font-bold">Starstacks Exchange</h1>
         </header>
 
         <p className="text-md text-center p-4 text-gray-500">
