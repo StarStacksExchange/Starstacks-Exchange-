@@ -1,13 +1,13 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { formatUnits } from "ethers";
 import {
-  useSignTypedData,
   useSendTransaction,
   useWaitForTransactionReceipt,
   useWalletClient,
+  useChainId,
   type BaseError,
 } from "wagmi";
-import { Address, concat, numberToHex, size, type Hex } from "viem";
+import type { Address } from "viem";
 import type { PriceResponse, QuoteResponse } from "../../src/utils/types";
 import {
   MAINNET_TOKENS_BY_ADDRESS,
@@ -17,6 +17,8 @@ import {
 } from "../../src/constants";
 import Image from "next/image";
 import qs from "qs";
+
+const tokenKey = (address: string) => address.toLowerCase();
 
 export default function QuoteView({
   taker,
@@ -28,48 +30,75 @@ export default function QuoteView({
   taker: Address | undefined;
   price: PriceResponse;
   quote: QuoteResponse | undefined;
-  setQuote: (price: any) => void;
+  setQuote: (quote: any) => void;
   chainId: number;
 }) {
-  console.log("price", price);
-
-  const sellTokenInfo = (chainId: number) => {
-  if (chainId === 8453) {
-    return BASE_TOKENS_BY_ADDRESS[price.sellToken.toLowerCase()];
-  }
-  return MAINNET_TOKENS_BY_ADDRESS[price.sellToken.toLowerCase()];
-}
-
-  const buyTokenInfo = (chainId: number) => {
-  if (chainId === 8453) {
-    return BASE_TOKENS_BY_ADDRESS[price.buyToken.toLowerCase()];
-  }
-  return MAINNET_TOKENS_BY_ADDRESS[price.buyToken.toLowerCase()];
-}
-
-  const { signTypedDataAsync } = useSignTypedData();
+  const [quoteError, setQuoteError] = useState("");
+  const [isFetching, setIsFetching] = useState(false);
   const { data: walletClient } = useWalletClient();
+  const connectedChainId = useChainId();
+  const { data: hash, isPending, error, sendTransaction } = useSendTransaction();
+  const { isLoading: isConfirming, isSuccess: isConfirmed } =
+    useWaitForTransactionReceipt({ hash });
 
-  // Fetch quote data
+  const tokenMap =
+    chainId === 8453 ? BASE_TOKENS_BY_ADDRESS : MAINNET_TOKENS_BY_ADDRESS;
+  const sellTokenInfo = tokenMap[tokenKey(price.sellToken)];
+  const buyTokenInfo = tokenMap[tokenKey(price.buyToken)];
+  const validChain = chainId === 1 || chainId === 8453;
+  const chainMatches = connectedChainId === chainId;
+
   useEffect(() => {
-    const params = {
-      chainId: chainId,
-      sellToken: price.sellToken,
-      buyToken: price.buyToken,
-      sellAmount: price.sellAmount,
-      taker,
-      swapFeeRecipient: FEE_RECIPIENT,
-      swapFeeBps: AFFILIATE_FEE,
-      swapFeeToken: price.buyToken,
-      tradeSurplusRecipient: FEE_RECIPIENT,
-    };
+    let cancelled = false;
+    const controller = new AbortController();
+    setQuote(undefined);
+    setQuoteError("");
 
-    async function main() {
-      const response = await fetch(`/api/quote?${qs.stringify(params)}`);
-      const data = await response.json();
-      setQuote(data);
+    if (!validChain || !taker || !sellTokenInfo || !buyTokenInfo) {
+      setQuoteError("Connect your wallet and choose supported tokens to request a quote.");
+      return () => {
+        cancelled = true;
+        controller.abort();
+      };
     }
-    main();
+
+    async function fetchQuote() {
+      setIsFetching(true);
+      try {
+        const params = {
+          chainId,
+          sellToken: price.sellToken,
+          buyToken: price.buyToken,
+          sellAmount: price.sellAmount,
+          taker,
+          swapFeeRecipient: FEE_RECIPIENT,
+          swapFeeBps: AFFILIATE_FEE,
+          swapFeeToken: price.buyToken,
+          tradeSurplusRecipient: FEE_RECIPIENT,
+        };
+        const response = await fetch(`/api/quote?${qs.stringify(params)}`, {
+          signal: controller.signal,
+        });
+        const data = await response.json();
+        if (!response.ok || !data?.transaction?.to || !data?.transaction?.data) {
+          throw new Error(data?.reason || data?.message || "Could not obtain a valid swap quote.");
+        }
+        if (!cancelled) setQuote(data);
+      } catch (err) {
+        if (!cancelled) {
+          setQuoteError(err instanceof Error ? err.message : "Unable to fetch quote.");
+          setQuote(undefined);
+        }
+      } finally {
+        if (!cancelled) setIsFetching(false);
+      }
+    }
+
+    fetchQuote();
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
   }, [
     chainId,
     price.sellToken,
@@ -77,163 +106,134 @@ export default function QuoteView({
     price.sellAmount,
     taker,
     setQuote,
-    FEE_RECIPIENT,
-    AFFILIATE_FEE,
+    validChain,
+    sellTokenInfo,
+    buyTokenInfo,
   ]);
 
-  const {
-    data: hash,
-    isPending,
-    error,
-    sendTransaction,
-  } = useSendTransaction();
-
-  const { isLoading: isConfirming, isSuccess: isConfirmed } =
-    useWaitForTransactionReceipt({
-      hash,
-    });
-
-  if (!quote) {
-    return <div>Getting best quote...</div>;
-  }
-
-  console.log("quote", quote);
-
-  // Helper function to format tax basis points to percentage
-  const formatTax = (taxBps: string) => (parseFloat(taxBps) / 100).toFixed(2);
+  const formatAmount = (amount: string, decimals: number) => {
+    try {
+      return formatUnits(amount, decimals);
+    } catch {
+      return "Unavailable";
+    }
+  };
+  const formatTax = (taxBps: string) => (Number(taxBps) / 100).toFixed(2);
+  const feeAmount = quote?.fees?.integratorFee?.amount;
+  const explorer = chainId === 8453 ? "https://basescan.org/tx/" : "https://etherscan.io/tx/";
+  const readyToSubmit =
+    !!quote?.transaction?.to &&
+    !!quote?.transaction?.data &&
+    !!walletClient?.account?.address &&
+    !!taker &&
+    walletClient.account.address.toLowerCase() === taker.toLowerCase() &&
+    chainMatches &&
+    validChain &&
+    !!sellTokenInfo &&
+    !!buyTokenInfo;
 
   return (
-    <div className="p-3 mx-auto max-w-screen-sm ">
-      <form>
+    <div className="p-3 mx-auto max-w-screen-sm">
       <div className="bg-slate-200 dark:bg-slate-800 p-4 rounded-sm mb-3">
-  <div className="text-xl mb-2 text-white">You pay</div>
-
-  <div className="flex items-center text-lg sm:text-3xl text-white">
-    {sellTokenInfo(chainId) ? (
-      <>
-        <Image
-          alt={sellTokenInfo(chainId).symbol}
-          className="h-9 w-9 mr-2 rounded-md"
-          src={sellTokenInfo(chainId).logoURI}
-          width={36}
-          height={36}
-        />
-
-        <span>
-          {formatUnits(
-            quote.sellAmount,
-            sellTokenInfo(chainId).decimals
+        <div className="text-xl mb-2">You pay</div>
+        <div className="flex items-center gap-2 text-lg sm:text-3xl">
+          {sellTokenInfo ? (
+            <>
+              {sellTokenInfo.logoURI && (
+                <Image
+                  alt={sellTokenInfo.symbol}
+                  className="h-9 w-9 rounded-md"
+                  src={sellTokenInfo.logoURI}
+                  width={36}
+                  height={36}
+                />
+              )}
+              <span>{quote ? formatAmount(quote.sellAmount, sellTokenInfo.decimals) : "—"}</span>
+              <span>{sellTokenInfo.symbol}</span>
+            </>
+          ) : (
+            <span>Sell token unavailable on this network</span>
           )}
-        </span>
-
-        <div className="ml-2">
-          {sellTokenInfo(chainId).symbol}
         </div>
-      </>
-    ) : (
-      <span>Token unavailable</span>
-    )}
-  </div>
-</div>
-        </div>
+      </div>
 
-        <div className="bg-slate-200 dark:bg-slate-800 p-4 rounded-sm mb-3">
-          <div className="text-xl mb-2 text-white">You receive</div>
-          <div className="flex items-center text-lg sm:text-3xl text-white">
-            <img
-  alt={buyTokenInfo(chainId)?.symbol || "Token"}
-  className="h-9 w-9 mr-2 rounded-md"
-  src={buyTokenInfo(chainId)?.logoURI || ""}
-/>
-            <span>
-              {buyTokenInfo(chainId)
-  ? formatUnits(quote.buyAmount, buyTokenInfo(chainId).decimals)
-  : "Token unavailable"}
-            </span>
-            <div className="ml-2">{buyTokenInfo(chainId).symbol}</div>
+      <div className="bg-slate-200 dark:bg-slate-800 p-4 rounded-sm mb-3">
+        <div className="text-xl mb-2">You receive</div>
+        <div className="flex items-center gap-2 text-lg sm:text-3xl">
+          {buyTokenInfo ? (
+            <>
+              {buyTokenInfo.logoURI && (
+                <Image
+                  alt={buyTokenInfo.symbol}
+                  className="h-9 w-9 rounded-md"
+                  src={buyTokenInfo.logoURI}
+                  width={36}
+                  height={36}
+                />
+              )}
+              <span>{quote ? formatAmount(quote.buyAmount, buyTokenInfo.decimals) : "—"}</span>
+              <span>{buyTokenInfo.symbol}</span>
+            </>
+          ) : (
+            <span>Buy token unavailable on this network</span>
+          )}
+        </div>
+      </div>
+
+      <div className="bg-slate-200 dark:bg-slate-800 p-4 rounded-sm mb-3">
+        {feeAmount && buyTokenInfo ? (
+          <div>
+            Affiliate fee: {formatAmount(String(feeAmount), buyTokenInfo.decimals)}{" "}
+            {buyTokenInfo.symbol}
           </div>
-        </div>
+        ) : null}
+        {quote?.tokenMetadata?.buyToken?.buyTaxBps &&
+          quote.tokenMetadata.buyToken.buyTaxBps !== "0" &&
+          buyTokenInfo && (
+            <p>
+              {buyTokenInfo.symbol} buy tax: {formatTax(quote.tokenMetadata.buyToken.buyTaxBps)}%
+            </p>
+          )}
+        {quote?.tokenMetadata?.sellToken?.sellTaxBps &&
+          quote.tokenMetadata.sellToken.sellTaxBps !== "0" &&
+          sellTokenInfo && (
+            <p>
+              {sellTokenInfo.symbol} sell tax: {formatTax(quote.tokenMetadata.sellToken.sellTaxBps)}%
+            </p>
+          )}
+      </div>
 
-        <div className="bg-slate-200 dark:bg-slate-800 p-4 rounded-sm mb-3">
-         <div className="text-slate-400">
-  {quote?.fees?.integratorFee?.amount && buyTokenInfo(chainId)
-    ? "Affiliate Fee: " +
-      Number(
-        formatUnits(
-          BigInt(quote.fees.integratorFee.amount),
-          buyTokenInfo(chainId).decimals
-        )
-      ) +
-      " " +
-      buyTokenInfo(chainId).symbol
-    : null}
-</div>
-              : null}
-          </div>
-      {/* Tax Information Display */}
-<div className="text-slate-400">
-  {quote?.tokenMetadata?.buyToken?.buyTaxBps &&
-    quote.tokenMetadata.buyToken.buyTaxBps !== "0" &&
-    buyTokenInfo(chainId) && (
-      <p>
-        {buyTokenInfo(chainId).symbol} Buy Tax:{" "}
-        {formatTax(quote.tokenMetadata.buyToken.buyTaxBps)}%
-      </p>
-    )}
-
-  {quote?.tokenMetadata?.sellToken?.sellTaxBps &&
-    quote.tokenMetadata.sellToken.sellTaxBps !== "0" &&
-    sellTokenInfo(chainId) && (
-      <p>
-        {sellTokenInfo(chainId).symbol} Sell Tax:{" "}
-        {formatTax(quote.tokenMetadata.sellToken.sellTaxBps)}%
-      </p>
-    )}
-</div>
-    </div>
-      </form>
-
+      {isFetching && <p>Getting best quote...</p>}
+      {quoteError && <p role="alert" className="text-red-500 mb-3">{quoteError}</p>}
+      {!chainMatches && <p className="text-amber-500 mb-3">Switch your wallet to the selected network.</p>}
       <button
-        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded w-full"
-        disabled={isPending}
-        onClick={async () => {
-          console.log("submitting quote to blockchain");
-          console.log("to", quote.transaction.to);
-          console.log("value", quote.transaction.value);
-
-          // Submit the transaction onchain
-          sendTransaction &&
-            sendTransaction({
-              account: walletClient?.account.address,
-              gas: !!quote?.transaction.gas
-                ? BigInt(quote?.transaction.gas)
-                : undefined,
-              to: quote?.transaction.to,
-              data: quote.transaction.data,
-              value: quote?.transaction.value
-                ? BigInt(quote.transaction.value)
-                : undefined, // value is used for native tokens
-              chainId: chainId,
-            });
+        type="button"
+        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded w-full disabled:opacity-50"
+        disabled={!readyToSubmit || isPending || isConfirming || isFetching}
+        onClick={() => {
+          if (!readyToSubmit || !quote) return;
+          sendTransaction({
+            account: walletClient!.account.address,
+            to: quote.transaction.to,
+            data: quote.transaction.data,
+            gas: quote.transaction.gas ? BigInt(quote.transaction.gas) : undefined,
+            value: quote.transaction.value ? BigInt(quote.transaction.value) : undefined,
+            chainId,
+          });
         }}
       >
-        {isPending ? "Confirming..." : "Place Order"}
+        {isPending ? "Confirm in wallet..." : "Place Order"}
       </button>
-      <br></br>
-      <br></br>
-      <br></br>
-      {isConfirming && (
-        <div className="text-center">Waiting for confirmation ⏳ ...</div>
+      {isConfirming && <p className="text-center mt-3">Waiting for confirmation ⏳</p>}
+      {isConfirmed && hash && (
+        <p className="text-center mt-3">
+          Transaction confirmed!{" "}
+          <a href={`${explorer}${hash}`} target="_blank" rel="noopener noreferrer">
+            View transaction
+          </a>
+        </p>
       )}
-      {isConfirmed && (
-        <div className="text-center">
-          Transaction Confirmed! 🎉{" "}
-          <a href={`https://etherscan.io/tx/${hash}`}>Check Etherscan</a>
-        </div>
-      )}
-      {error && (
-        <div>Error: {(error as BaseError).shortMessage || error.message}</div>
-      )}
+      {error && <p role="alert">Error: {(error as BaseError).shortMessage || error.message}</p>}
     </div>
   );
 }
