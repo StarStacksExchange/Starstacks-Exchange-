@@ -149,9 +149,6 @@ export default function PriceView({
   };
   const updateBuy = (e: ChangeEvent<HTMLSelectElement>) => setBuyToken(e.target.value);
   const feeAmount = price?.fees?.integratorFee?.amount;
-  const tax = (value?: string) => value && value !== "0" ? `${(Number(value) / 100).toFixed(2)}%` : null;
-  const buyTax = tax(price?.tokenMetadata?.buyToken?.buyTaxBps);
-  const sellTax = tax(price?.tokenMetadata?.sellToken?.sellTaxBps);
 
   return (
     <div>
@@ -188,8 +185,6 @@ export default function PriceView({
           {sellAmount && parsedAmount === undefined && <p role="alert">Enter a valid amount (maximum {sell?.decimals ?? 18} decimal places).</p>}
           {errorMessage && <p role="alert" className="text-red-300">{errorMessage}</p>}
           {feeAmount && buy && <p>Affiliate Fee: {formatUnits(feeAmount, buy.decimals)} {buy.symbol}</p>}
-          {buyTax && <p>{buy?.symbol} Buy Tax: {buyTax}</p>}
-          {sellTax && <p>{sell?.symbol} Sell Tax: {sellTax}</p>}
         </div>
         {!taker ? (
           <ConnectButton.Custom>
