@@ -24,6 +24,12 @@ export const DEFAULT_BUY_TOKEN = (_chainId: number) => "weth";
 
 type Token = (typeof MAINNET_TOKENS)[number];
 
+// The API may return allowance instructions that are not included in the
+// project's current PriceResponse definition. Treat them as optional.
+type PriceWithIssues = PriceResponse & {
+  issues?: { allowance?: { spender: Address } | null };
+};
+
 function useTokenBalance(address: Address | undefined, token: Token | undefined, chainId: number) {
   const native = token ? isNative(token.address) : false;
   const nativeBalance = useBalance({
@@ -49,7 +55,7 @@ export default function PriceView({
   setFinalize,
   chainId,
 }: {
-  price: PriceResponse | undefined;
+  price: PriceWithIssues | undefined;
   taker: Address | undefined;
   setPrice: (price: any) => void;
   setFinalize: (finalize: boolean) => void;
@@ -212,7 +218,7 @@ function ApprovalOrReview({
   chainId: number;
   taker: Address;
   sell: Token | undefined;
-  price: PriceResponse | undefined;
+  price: PriceWithIssues | undefined;
   parsedAmount: bigint | undefined;
   disabled: boolean;
   onReview: () => void;
@@ -234,7 +240,7 @@ function ApprovalOrReview({
   const requiredApproval = parsedAmount ?? 0n;
   const needsApproval = !native && !!spender && requiredApproval > 0n &&
     (allowance === undefined || allowance < requiredApproval);
-  const canReview = !!price?.buyAmount && !disabled && (native || price.issues?.allowance === null || (!needsApproval && allowance !== undefined));
+  const canReview = !!price?.buyAmount && !disabled && (native || price?.issues?.allowance === null || (!needsApproval && allowance !== undefined));
 
   if (!price?.buyAmount) {
     return <button type="button" disabled className="w-full bg-blue-500 text-white p-3 rounded opacity-50">Enter an amount to get a quote</button>;
