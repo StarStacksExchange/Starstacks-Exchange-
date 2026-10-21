@@ -38,8 +38,7 @@ export default function QuoteView({
     return BASE_TOKENS_BY_ADDRESS[price.sellToken.toLowerCase()];
   }
   return MAINNET_TOKENS_BY_ADDRESS[price.sellToken.toLowerCase()];
-};
-  };
+}
 
   const buyTokenInfo = (chainId: number) => {
   if (chainId === 8453) {
