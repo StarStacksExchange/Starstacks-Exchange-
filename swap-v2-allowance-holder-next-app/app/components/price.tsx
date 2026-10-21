@@ -225,7 +225,7 @@ function ApprovalOrReview({
 }) {
   const spender = price?.issues?.allowance?.spender;
   const native = !!sell && isNative(sell.address);
-  const { data: allowance, refetch } = useReadContract({
+  const { data: allowance, refetch, isError: allowanceError, error: allowanceReadError, isPending: allowancePending } = useReadContract({
     chainId,
     address: (sell?.address ?? NATIVE_ETH) as Address,
     abi: erc20Abi,
@@ -245,6 +245,14 @@ function ApprovalOrReview({
   if (!price?.buyAmount) {
     return <button type="button" disabled className="w-full bg-blue-500 text-white p-3 rounded opacity-50">Enter an amount to get a quote</button>;
   }
+  // A price response without a spender is not proof that an ERC-20 is approved.
+  // Fail closed rather than submitting an unsafe swap or displaying an endless spinner.
+  if (!native && !spender) {
+    return <p role="alert" className="rounded bg-red-100 p-3 text-red-900">Approval unavailable: the price API did not provide an allowance spender. Verify the /api/price response and its issues.allowance field. Swapping is disabled.</p>;
+  }
+  if (!native && allowanceError) {
+    return <div role="alert" className="rounded bg-red-100 p-3 text-red-900">Allowance check failed: {allowanceReadError?.message ?? "RPC error"}. <button type="button" onClick={() => void refetch()} className="underline">Retry</button></div>;
+  }
   if (needsApproval && sell && spender) {
     return (
       <div>
@@ -260,7 +268,7 @@ function ApprovalOrReview({
               args: [spender, requiredApproval], // exact amount, never unlimited
             });
           }}>
-          {isPending || isApproving ? "Approving..." : allowance === undefined ? "Checking allowance..." : `Approve ${sell.symbol} (exact amount)`}
+          {isPending || isApproving ? "Approving..." : allowance === undefined ? (allowancePending ? "Checking allowance..." : "Allowance unavailable — retry") : `Approve ${sell.symbol} (exact amount)`}
         </button>
         {error && <p role="alert" className="text-red-600">{error.message}</p>}
       </div>
