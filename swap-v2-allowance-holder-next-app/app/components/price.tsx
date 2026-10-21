@@ -1,5 +1,3 @@
-"use client";
-
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useEffect, useMemo, useState, type ChangeEvent } from "react";
 import { formatUnits, parseUnits } from "ethers";
@@ -17,6 +15,7 @@ import {
   FEE_RECIPIENT,
 } from "../../src/constants";
 import qs from "qs";
+import type { PriceResponse } from "../../src/utils/types";
 
 const NATIVE_ETH = "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee";
 const isNative = (address: string) => address.toLowerCase() === NATIVE_ETH;
@@ -24,17 +23,6 @@ const isNative = (address: string) => address.toLowerCase() === NATIVE_ETH;
 export const DEFAULT_BUY_TOKEN = (_chainId: number) => "weth";
 
 type Token = (typeof MAINNET_TOKENS)[number];
-type SwapPrice = {
-  buyAmount?: string;
-  fees?: { integratorFee?: { amount?: string } };
-  issues?: { allowance?: { spender?: Address; actual?: string } | null };
-  tokenMetadata?: {
-    buyToken?: { buyTaxBps?: string; sellTaxBps?: string };
-    sellToken?: { buyTaxBps?: string; sellTaxBps?: string };
-  };
-  validationErrors?: Array<{ reason?: string; field?: string }>;
-  message?: string;
-};
 
 function useTokenBalance(address: Address | undefined, token: Token | undefined, chainId: number) {
   const native = token ? isNative(token.address) : false;
@@ -61,7 +49,7 @@ export default function PriceView({
   setFinalize,
   chainId,
 }: {
-  price: SwapPrice | undefined;
+  price: PriceResponse | undefined;
   taker: Address | undefined;
   setPrice: (price: any) => void;
   setFinalize: (finalize: boolean) => void;
@@ -132,7 +120,7 @@ export default function PriceView({
           tradeSurplusRecipient: FEE_RECIPIENT,
         };
         const response = await fetch(`/api/price?${qs.stringify(params)}`, { signal: controller.signal });
-        const data: SwapPrice = await response.json();
+        const data: PriceResponse & { message?: string; validationErrors?: Array<{ reason?: string }> } = await response.json();
         if (!response.ok || !data.buyAmount) {
           throw new Error(data.message || data.validationErrors?.[0]?.reason || `Quote unavailable (${response.status})`);
         }
@@ -229,7 +217,7 @@ function ApprovalOrReview({
   chainId: number;
   taker: Address;
   sell: Token | undefined;
-  price: SwapPrice | undefined;
+  price: PriceResponse | undefined;
   parsedAmount: bigint | undefined;
   disabled: boolean;
   onReview: () => void;
